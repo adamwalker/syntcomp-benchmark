@@ -68,7 +68,7 @@ runSolver files timeout Solver{..} = do
         hFlush stdout
         let cmdLine = replace "%i" file args
             process = CreateProcess
-                (ShellCommand $ command ++ " " ++ cmdLine)
+                (ShellCommand $ "(ulimit -v 3000000;" ++ command ++ " " ++ cmdLine ++ ")")
                 Nothing
                 Nothing
                 Inherit
@@ -97,9 +97,10 @@ runSolver files timeout Solver{..} = do
         end <- getCurrentTime
         --let elapsed = fromIntegral (fromEnum $ childUserTime end - childUserTime start) / 100
         let elapsed = fromRational $ toRational $ diffUTCTime end start 
-        print elapsed
         timedOut <- readIORef ref
-        return $ correct file cts exitCode elapsed timedOut
+        let res = correct file cts exitCode elapsed timedOut
+        putStrLn $ r2s res
+        return res
 
 runAll :: Config -> IO String
 runAll Config{..} = do
